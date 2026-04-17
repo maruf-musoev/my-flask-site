@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-from flask_admin import Admin #
+
 app = Flask(__name__)
-admin = Admin(app ,name='Панел Маруфа', template_mode='bootstrap3')
 app.secret_key = 'maruf_secret_key'
 
 USERS = {"Maruf": "985453887"}
