@@ -8,9 +8,9 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            /* Ссылка на картинку со стадионом */
-            background: url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Ссылка на качественное фото стадиона */
+            background: url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed;
             background-size: cover;
             height: 100vh;
             display: flex;
@@ -18,6 +18,7 @@
             align-items: center;
         }
 
+        /* Верхняя панель с текстом */
         .top-nav {
             position: absolute;
             top: 20px;
@@ -28,69 +29,62 @@
             box-sizing: border-box;
             color: white;
             font-size: 14px;
-            text-shadow: 1px 1px 2px black;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.7);
         }
 
+        /* Карточка формы (эффект стекла) */
         .login-card {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.9);
             padding: 40px;
-            width: 320px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 380px;
             text-align: center;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
         }
 
-        h1 {
-            color: #222;
+        h2 {
             margin-bottom: 25px;
-            font-size: 28px;
-        }
-
-        .error-msg {
-            color: red;
-            background: rgba(255,0,0,0.1);
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            font-size: 14px;
+            color: #333;
+            font-weight: 600;
         }
 
         input {
             width: 100%;
-            padding: 12px;
+            padding: 12px 15px;
             margin-bottom: 15px;
+            border: 1px solid #ddd;
             border-radius: 8px;
-            border: 1px solid #ccc;
             box-sizing: border-box;
             font-size: 16px;
         }
 
-        .btn-login {
+        button {
             width: 100%;
             padding: 12px;
-            border-radius: 8px;
-            border: none;
-            background: #0066ff;
+            background-color: #0033cc;
             color: white;
-            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
+            transition: background 0.3s;
         }
 
-        .btn-login:hover {
-            background: #0044cc;
+        button:hover {
+            background-color: #002288;
         }
 
-        .register-link {
+        .footer-links {
             margin-top: 20px;
-            display: block;
-            color: #0055ff;
+            font-size: 13px;
+        }
+
+        .footer-links a {
+            color: #0033cc;
             text-decoration: none;
-            font-size: 14px;
         }
     </style>
 </head>
@@ -102,19 +96,15 @@
     </div>
 
     <div class="login-card">
-        <h1>Тестирование</h1>
-
-        {% if error %}
-            <div class="error-msg">{{ error }}</div>
-        {% endif %}
-
-        <form action="{{ url_for('login') }}" method="post">
-            <input type="text" name="username" placeholder="Ваше имя" required>
-            <input type="password" name="password" placeholder="Ваш код (пароль)" required>
-            <button type="submit" class="btn-login">Войти</button>
+        <h2>Тестирование</h2>
+        <form>
+            <input type="text" placeholder="Ваше имя" required>
+            <input type="password" placeholder="Ваш код (пароль)" required>
+            <button type="submit">Войти</button>
         </form>
-        
-        <a href="{{ url_for('register') }}" class="register-link">Нет аккаунта? Зарегистрироваться</a>
+        <div class="footer-links">
+            <a href="/register">Нет аккаунта? Зарегистрироваться</a>
+        </div>
     </div>
 
 </body>
