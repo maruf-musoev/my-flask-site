@@ -4,17 +4,93 @@
     <meta charset="UTF-8">
     <title>Регистрация</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 300px; text-align: center; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        .link { display: block; margin-top: 15px; font-size: 13px; color: #007bff; text-decoration: none; }
+      body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* ВАЖНО: Имя файла должно совпадать точно! */
+            background: url('/static/photo.jpg') no-repeat center center fixed;
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Верхняя панель с текстом */
+        .top-nav {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-sizing: border-box;
+            color: white;
+            font-size: 14px;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.7);
+        }
+
+        /* Карточка формы (эффект стекла) */
+        .login-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0033cc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #002288;
+        }
+
+        .footer-links {
+            margin-top: 20px;
+            font-size: 13px;
+        }
+
+        .footer-links a {
+            color: #0033cc;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
     <div class="card">
         <h2>Создать профиль</h2>
-        {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+        <p style="color:red"></p>
         <form method="post">
             <input type="text" name="username" placeholder="Придумайте имя" required>
             <input type="password" name="password" placeholder="Придумайте код" required>
