@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор предмета - Maruf Test</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f3; margin: 0; padding: 20px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; transition: transform 0.3s; cursor: pointer; text-decoration: none; color: #333; display: flex; flex-direction: column; align-items: center; }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        .icon { font-size: 50px; margin-bottom: 15px; }
+        h3 { margin: 10px 0; color: #2c3e50; }
+        .btn-start { background: #28a745; color: white; padding: 8px 20px; border-radius: 20px; font-size: 14px; margin-top: 10px; }
+        .logout-link { display: block; text-align: center; margin-top: 30px; color: #e74c3c; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Добро пожаловать, {{ username }}!</h1>
+        <p>Выберите предмет, чтобы начать тестирование:</p>
+    </div>
+
+    <div class="grid">
+        <a href="{{ url_for('quiz', subject='english') }}" class="card">
+            <div class="icon">🇬🇧</div>
+            <h3>Английский язык</h3>
+            <div class="btn-start">Перейти</div>
+        </a>
+
+        <a href="{{ url_for('quiz', subject='architecture') }}" class="card">
+            <div class="icon">🏛️</div>
+            <h3>Архитектура</h3>
+            <div class="btn-start">Перейти</div>
+        </a>
+
+        <a href="{{ url_for('quiz', subject='philosophy') }}" class="card">
+            <div class="icon">📜</div>
+            <h3>Философия</h3>
+            <div class="btn-start">Перейти</div>
+        </a>
+
+        <a href="{{ url_for('quiz', subject='java') }}" class="card">
+            <div class="icon">☕</div>
+            <h3>Java Программирование</h3>
+            <div class="btn-start">Перейти</div>
+        </a>
+
+        <a href="{{ url_for('quiz', subject='algorithms') }}" class="card">
+            <div class="icon">💻</div>
+            <h3>Алгоритмы</h3>
+            <div class="btn-start">Перейти</div>
+        </a>
+
+        <a href="{{ url_for('quiz', subject='ktm') }}" class="card">
+            <div class="icon">📅</div>
+            <h3>КТМ</h3>
+            <div class="btn-start">Перейти</div>
+        </a>
+    </div>
+
+    <a href="{{ url_for('logout') }}" class="logout-link">Выйти из аккаунта</a>
+</body>
+</html>

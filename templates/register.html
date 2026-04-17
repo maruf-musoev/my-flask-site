@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 300px; text-align: center; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .link { display: block; margin-top: 15px; font-size: 13px; color: #007bff; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Создать профиль</h2>
+        {% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+        <form method="post">
+            <input type="text" name="username" placeholder="Придумайте имя" required>
+            <input type="password" name="password" placeholder="Придумайте код" required>
+            <button type="submit">Зарегистрироваться</button>
+        </form>
+        <a href="/login" class="link">Уже есть аккаунт? Войти</a>
+    </div>
+</body>
+</html>

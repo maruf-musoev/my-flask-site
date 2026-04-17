@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Java Test</title>
+    <style>
+        .correct { color: green; font-weight: bold; }
+        .wrong { color: red; text-decoration: line-through; }
+        .result-box { padding: 20px; border: 2px solid #000; margin-bottom: 20px; background: #f0f0f0; }
+        .question-block { margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+    </style>
+</head>
+<body>
+   <h1>Тест по {{ subject|capitalize }}</h1>
+    {% if results is not none %}
+        <div class="result-box">
+            <h2>Ваш результат: {{ score }} из 100</h2>
+        </div>
+    {% endif %}
+
+   <form method="POST" action="{{ url_for('quiz', subject=subject) }}">
+    {% for q in questions %}
+    <div class="question-block">
+        <p><strong>{{ loop.index }}. {{ q.q }}</strong></p>
+        
+        {% for code, text in q.options.items() %}
+            <label>
+                <input type="radio" name="{{ q.id }}" value="{{ code }}" 
+                    {% if results and results[q.id].user_ans == code %}checked{% endif %}
+                    {% if results %}disabled{% endif %}>
+                
+                <span class="
+                    {% if results %}
+                        {% if code == results[q.id].correct_ans %}correct{% endif %}
+                        {% if results[q.id].user_ans == code and code != results[q.id].correct_ans %}wrong{% endif %}
+                    {% endif %}">
+                    {{ code }}) {{ text }}
+                </span>
+            </label><br>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+    {% if results is none %}
+        <button type="submit" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Проверить
+        </button>
+    {% else %}
+        <div style="margin-top: 20px;">
+            <a href="{{ url_for('quiz', subject=subject) }}" style="text-decoration: none; background: #007bff; color: white; padding: 10px 15px; border-radius: 5px;">Попробовать снова</a>
+            <br><br>
+            <a href="{{ url_for('index') }}" style="color: #666;">На главную</a>
+        </div>
+    {% endif %}
+</form>
+</body>
+</html>
