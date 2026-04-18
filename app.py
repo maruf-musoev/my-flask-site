@@ -121,9 +121,10 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
+    # Этот блок создаст таблицы в Neon автоматически
     with app.app_context():
-        db.create_all()
-        # Авто-создание твоего админ-аккаунта
+        db.create_all() 
+        # Проверяем, есть ли твой админский аккаунт
         if not User.query.filter_by(username="Maruf").first():
             db.session.add(User(username="Maruf", password="985453887"))
             db.session.commit()
