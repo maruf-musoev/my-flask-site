@@ -1,125 +1,87 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_admin import Admin, AdminIndexView, expose
+from flask_admin.contrib.sqla import ModelView
+import os
 
 app = Flask(__name__)
 app.secret_key = 'maruf_secret_key'
+from flask_babel import Babel
 
-USERS = {"Maruf": "985453887"}
+# 1. Сначала создаем функцию
+def get_locale():
+    return 'ru'
 
-JAVA_QUIZ = [
-    {'id': 1, 'q': 'Что означает класс в Java?', 'a': 'B', 'options': {'A': 'уровень сложности', 'B': 'основной элемент ООП', 'C': 'имя переменной', 'D': 'все операторы'}},
-    {'id': 2, 'q': 'Как объявляется класс в коде?', 'a': 'B', 'options': {'A': 'select*from class', 'B': 'class MyClass {}', 'C': 'new class', 'D': 'extends class'}},
-    {'id': 3, 'q': 'Для чего используется оператор NEW?', 'a': 'B', 'options': {'A': 'создание переменной', 'B': 'создание экземпляра класса', 'C': 'объявление класса', 'D': 'передача данных'}},
-    {'id': 4, 'q': 'Диапазон типа double?', 'a': 'B', 'options': {'A': 'от -1.7 до +1.7', 'B': 'от 4.9e-324 до 1.8e+308', 'C': 'long range', 'D': 'нет верного'}},
-    {'id': 5, 'q': 'Метод String для получения длины?', 'a': 'B', 'options': {'A': 'Sizeof()', 'B': 'length()', 'C': 'get()', 'D': 'lengthof()'}},
-    {'id': 6, 'q': 'Диапазон типа long?', 'a': 'B', 'options': {'A': 'byte range', 'B': 'от -9223372036854775808 до 9223372036854775807', 'C': 'short range', 'D': 'int range'}},
-    {'id': 7, 'q': 'Однострочный комментарий?', 'a': 'B', 'options': {'A': '/* */', 'B': '//', 'C': '!!', 'D': '\\'}},
-    {'id': 8, 'q': 'Ключевое слово в Java?', 'a': 'B', 'options': {'A': 'file', 'B': 'if', 'C': 'that', 'D': 'нет верного'}},
-    {'id': 9, 'q': 'Компонент для работы программ Java?', 'a': 'B', 'options': {'A': 'RDK', 'B': 'JDK', 'C': 'JDC', 'D': 'SDC'}},
-    {'id': 10, 'q': 'Роль метода main?', 'a': 'B', 'options': {'A': 'нет роли', 'B': 'точка входа в программу', 'C': 'запуск командной строки', 'D': 'блок-инструкция'}},
-    {'id': 11, 'q': 'Что используется для записи данных?', 'a': 'B', 'options': {'A': 'байт', 'B': 'переменная', 'C': 'тип данных', 'D': 'база данных'}},
-    {'id': 12, 'q': 'Что означает int x;?', 'a': 'B', 'options': {'A': 'постоянный тип', 'B': 'целочисленный тип', 'C': 'вещественный тип', 'D': 'все верно'}},
-    {'id': 13, 'q': 'Правильное создание float?', 'a': 'B', 'options': {'A': 'int[] a', 'B': 'float x = 23.3f;', 'C': 'byte x=1000', 'D': 'char str="ab"'}},
-    {'id': 14, 'q': 'Правильное создание массива?', 'a': 'B', 'options': {'A': 'int[] a = int[]', 'B': 'int[] a = new int[] {1,2}', 'C': 'new int {1}', 'D': 'int a = new int'}},
-    {'id': 15, 'q': 'Правильный вывод?', 'a': 'B', 'options': {'A': 'System.out()', 'B': 'System.out.println()', 'C': 'System.print()', 'D': 'print()'}},
-    {'id': 16, 'q': 'Что общего у элементов массива?', 'a': 'B', 'options': {'A': 'название', 'B': 'тип данных', 'C': 'адрес', 'D': 'размер'}},
-    {'id': 17, 'q': 'Присвоение в многомерном массиве?', 'a': 'B', 'options': {'A': 'a{0}{0}', 'B': 'a[0][0] = 1;', 'C': 'a[0 0]', 'D': 'a[0, 0]'}},
-    {'id': 18, 'q': 'Класс для получения данных?', 'a': 'B', 'options': {'A': 'System', 'B': 'Scanner', 'C': 'Out', 'D': 'Scaner'}},
-    {'id': 19, 'q': 'Тернарный оператор?', 'a': 'B', 'options': {'A': '^', 'B': '? :', 'C': '!', 'D': '&&'}},
-    {'id': 20, 'q': 'Расширение файлов исходного кода?', 'a': 'B', 'options': {'A': '.class', 'B': '.java', 'C': '.path', 'D': '.javac'}},
-    {'id': 21, 'q': 'Тип языка Java?', 'a': 'B', 'options': {'A': 'низкий', 'B': 'высокий', 'C': 'средний', 'D': 'все верно'}},
-    {'id': 22, 'q': 'Автоматический пакет?', 'a': 'B', 'options': {'A': 'java.text', 'B': 'java.lang', 'C': 'java.util', 'D': 'все'}},
-    {'id': 23, 'q': 'Тип данных не для switch?', 'a': 'B', 'options': {'A': 'int', 'B': 'long', 'C': 'char', 'D': 'String'}},
-    {'id': 24, 'q': 'Результат x++ при x=5?', 'a': 'A', 'options': {'A': '5', 'B': '6', 'C': '4', 'D': 'Ошибка'}},
-    {'id': 25, 'q': 'Унарная операция?', 'a': 'B', 'options': {'A': '/+', 'B': '++', 'C': '*-/', 'D': '#@'}}
-]
+# 2. Потом создаем объект babel и передаем ему эту функцию
+babel = Babel(app, locale_selector=get_locale)
+# Настройка базы данных
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test_system.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-ALL_QUIZZES = {
-    'java': JAVA_QUIZ,
-    'philosophy': [
-        {'id': 1, 'q': 'Основатель атомистической теории?', 'a': 'A', 'options': {'A': 'Демокрит', 'B': 'Аристотель', 'C': 'Гераклит', 'D': 'Рази'}},
-        {'id': 2, 'q': 'Основные школы Др евнего Ирана?', 'a': 'C', 'options': {'A': 'Милет', 'B': 'Калам', 'C': 'Зороастризм, манихейство', 'D': 'Исмоилизм'}},
-        {'id': 3, 'q': 'Синоним термина «философия» в таджикском?', 'a': 'D', 'options': {'A': 'Наука', 'B': 'Притча', 'C': 'Литература', 'D': 'Мудрость'}},
-        {'id': 4, 'q': 'Кто впервые использовал термин философия?', 'a': 'B', 'options': {'A': 'Сократ', 'B': 'Пифагор', 'C': 'Маркс', 'D': 'Хамадони'}},
-        {'id': 5, 'q': 'Первооснова мироздания — вода?', 'a': 'A', 'options': {'A': 'Фалес', 'B': 'Гераклит', 'C': 'Декарт', 'D': 'Гоббс'}},
-        {'id': 6, 'q': 'Основа мироздания — огонь?', 'a': 'C', 'options': {'A': 'Демокрит', 'B': 'Сино', 'C': 'Гераклит', 'D': 'Дониш'}},
-        {'id': 7, 'q': 'Что изучает философия?', 'a': 'A', 'options': {'A': 'Всеобщие законы бытия', 'B': 'Законы истории', 'C': 'Законы физики', 'D': 'Законы морали'}},
-        {'id': 8, 'q': '«Я мыслю, значит, существую» — кто сказал?', 'a': 'B', 'options': {'A': 'Ибн Сина', 'B': 'Рене Декарт', 'C': 'Френсис Бэкон', 'D': 'Беруни'}},
-        {'id': 9, 'q': '«Человек – мера всех вещей»?', 'a': 'D', 'options': {'A': 'Маркс', 'B': 'Сократ', 'C': 'Эпикур', 'D': 'Протагор'}},
-        {'id': 10, 'q': 'Автор книги «Феноменология духа»?', 'a': 'A', 'options': {'A': 'Гегель', 'B': 'Фейербах', 'C': 'Спиноза', 'D': 'Бэкон'}},
-        {'id': 11, 'q': 'Основатель зороастризма?', 'a': 'B', 'options': {'A': 'Маздак', 'B': 'Зардушт', 'C': 'Сино', 'D': 'Сократ'}},
-        {'id': 12, 'q': 'Представитель антропологического материализма?', 'a': 'C', 'options': {'A': 'Гегель', 'B': 'Дидро', 'C': 'Фейербах', 'D': 'Беруни'}},
-        {'id': 13, 'q': 'Кто написал «Метафизику»?', 'a': 'A', 'options': {'A': 'Аристотель', 'B': 'Демокрит', 'C': 'Гераклит', 'D': 'Рози'}},
-        {'id': 14, 'q': 'Автор книги «Капитал»?', 'a': 'D', 'options': {'A': 'Гоббс', 'B': 'Локк', 'C': 'Гегель', 'D': 'Маркс и Энгельс'}},
-        {'id': 15, 'q': 'Фраза Бэкона?', 'a': 'B', 'options': {'A': 'Знание-опыт', 'B': 'Знание-сила', 'C': 'Природа-успех', 'D': 'Знание-познание'}},
-        {'id': 16, 'q': 'Антропология — это учение о...', 'a': 'A', 'options': {'A': 'Человеке', 'B': 'Природе', 'C': 'Материи', 'D': 'Времени'}},
-        {'id': 17, 'q': 'Основной вопрос философии?', 'a': 'C', 'options': {'A': 'Природа к Веселенной', 'B': 'Человек к прошлому', 'C': 'Сознание к материи', 'D': 'Природа к атмосфере'}},
-        {'id': 18, 'q': 'Кто написал «Донишнома»?', 'a': 'A', 'options': {'A': 'Ибн Сино', 'B': 'Санои', 'C': 'Бедил', 'D': 'Беруни'}},
-        {'id': 19, 'q': 'Онтология — это учение о...', 'a': 'B', 'options': {'A': 'Физике', 'B': 'Бытии', 'C': 'Сознании', 'D': 'Культуре'}},
-        {'id': 20, 'q': '«Веды» — памятник какого народа?', 'a': 'D', 'options': {'A': 'Персов', 'B': 'Таджиков', 'C': 'Греков', 'D': 'Индии'}},
-        {'id': 21, 'q': 'Сущность учения Конфуция?', 'a': 'A', 'options': {'A': 'Гуманизм', 'B': 'Любовь', 'C': 'Смелость', 'D': 'Патриотизм'}},
-        {'id': 22, 'q': 'Основатель учения об атоме?', 'a': 'C', 'options': {'A': 'Платон', 'B': 'Анаксимен', 'C': 'Демокрит', 'D': 'Аристотель'}},
-        {'id': 23, 'q': 'Впервые использовал термин «диалектика»?', 'a': 'B', 'options': {'A': 'Гераклит', 'B': 'Сократ', 'C': 'Парменид', 'D': 'Зенон'}},
-        {'id': 24, 'q': 'Кто известен как «Первый учитель»?', 'a': 'A', 'options': {'A': 'Аристотель', 'B': 'Пифагор', 'C': 'Платон', 'D': 'Эпикур'}},
-        {'id': 25, 'q': 'Особенность древнегреческой философии?', 'a': 'D', 'options': {'A': 'Геоцентризм', 'B': 'Антропоцентризм', 'C': 'Гуманизм', 'D': 'Космоцентризм'}}
-    ],
-    'architecture': [
-        {'id': 1, 'q': 'Что такое архитектура ИС?', 'a': 'A', 'options': {'A': 'Структура компонентов', 'B': 'База данных', 'C': 'Сеть', 'D': 'Программа'}},
-        {'id': 2, 'q': 'Основные компоненты ИС?', 'a': 'B', 'options': {'A': 'Только ПО', 'B': 'ПО, оборудование, данные', 'C': 'Только люди', 'D': 'Провода'}},
-        {'id': 3, 'q': 'Не для долговременного хранения?', 'a': 'D', 'options': {'A': 'Диск', 'B': 'Флешка', 'C': 'CD', 'D': 'ОЗУ'}},
-        {'id': 4, 'q': 'Устройство вывода?', 'a': 'A', 'options': {'A': 'Монитор', 'B': 'Клавиатура', 'C': 'Мышь', 'D': 'Сканер'}},
-        {'id': 5, 'q': 'Скорость ПК зависит от:', 'a': 'C', 'options': {'A': 'Экрана', 'B': 'Клавиш', 'C': 'Частоты процессора', 'D': 'Памяти'}},
-        {'id': 6, 'q': 'Что означает HTML?', 'a': 'B', 'options': {'A': 'High Text', 'B': 'Hyper Text Markup Language', 'C': 'Hyper Tool', 'D': 'Machine'}},
-        {'id': 7, 'q': 'Основной элемент HTML?', 'a': 'A', 'options': {'A': 'Тег', 'B': 'Класс', 'C': 'Файл', 'D': 'Диск'}},
-        {'id': 8, 'q': 'Заголовок самого большого уровня?', 'a': 'D', 'options': {'A': 'h6', 'B': 'head', 'C': 'title', 'D': 'h1'}},
-        {'id': 9, 'q': 'Тег для ссылки?', 'a': 'B', 'options': {'A': 'img', 'B': 'a', 'C': 'text', 'D': 'br'}},
-        {'id': 10, 'q': 'Тег для изображения?', 'a': 'C', 'options': {'A': 'a', 'B': 'link', 'C': 'img', 'D': 'pic'}},
-        {'id': 11, 'q': 'Что делает тег div?', 'a': 'A', 'options': {'A': 'Делит на блоки', 'B': 'Рисует', 'C': 'Ссылка', 'D': 'Таблица'}},
-        {'id': 12, 'q': 'Тег для таблицы?', 'a': 'B', 'options': {'A': 'tr', 'B': 'table', 'C': 'td', 'D': 'form'}},
-        {'id': 13, 'q': 'Тег для переноса строки?', 'a': 'D', 'options': {'A': 'p', 'B': 'hr', 'C': 'line', 'D': 'br'}},
-        {'id': 14, 'q': 'Что такое IP-адрес?', 'a': 'A', 'options': {'A': 'Уникальный адрес в сети', 'B': 'Имя сайта', 'C': 'Протокол', 'D': 'Железо'}},
-        {'id': 15, 'q': 'Программа для просмотра Web-страниц?', 'a': 'C', 'options': {'A': 'Модем', 'B': 'Почта', 'C': 'Браузер', 'D': 'Сервер'}},
-        {'id': 16, 'q': 'Модем предназначен для:', 'a': 'B', 'options': {'A': 'Клавиатуры', 'B': 'Преобразования сигнала', 'C': 'Скорости', 'D': 'Печати'}},
-        {'id': 17, 'q': 'Что означает CSS?', 'a': 'A', 'options': {'A': 'Cascading Style Sheets', 'B': 'Computer Style', 'C': 'Creative', 'D': 'Colorful'}},
-        {'id': 18, 'q': 'Изменить цвет текста?', 'a': 'D', 'options': {'A': 'font', 'B': 'back', 'C': 'style', 'D': 'color'}},
-        {'id': 19, 'q': 'Внешний отступ?', 'a': 'B', 'options': {'A': 'padding', 'B': 'margin', 'C': 'border', 'D': 'space'}},
-        {'id': 20, 'q': 'Внутренний отступ?', 'a': 'C', 'options': {'A': 'margin', 'B': 'border', 'C': 'padding', 'D': 'space'}},
-        {'id': 21, 'q': 'Что такое кулер?', 'a': 'A', 'options': {'A': 'Охлаждение процессора', 'B': 'Память', 'C': 'Программа', 'D': 'Вирус'}},
-        {'id': 22, 'q': 'Выбрать по классу в CSS?', 'a': 'B', 'options': {'A': '#name', 'B': '.name', 'C': '*name', 'D': 'id'}},
-        {'id': 23, 'q': 'Тег для кнопки?', 'a': 'D', 'options': {'A': 'click', 'B': 'input', 'C': 'press', 'D': 'button'}},
-        {'id': 24, 'q': 'Разница margin и padding?', 'a': 'A', 'options': {'A': 'margin-внешний, padding-внутренний', 'B': 'Нет разницы', 'C': 'Оба внешние', 'D': 'Для текста'}},
-        {'id': 25, 'q': 'Что делает display: none?', 'a': 'C', 'options': {'A': 'Прозрачный', 'B': 'Шрифт', 'C': 'Скрывает элемент', 'D': 'Увеличивает'}}
-    ],
-    'ktm': [
-        {'id': 1, 'q': 'Что такое КТМ?', 'a': 'B', 'options': {'A': 'Техника', 'B': 'Календарно-тематическое планирование', 'C': 'Карта', 'D': 'Клуб'}},
-        {'id': 2, 'q': 'Кто утверждает КТМ?', 'a': 'A', 'options': {'A': 'Директор/завуч', 'B': 'Ученик', 'C': 'Родитель', 'D': 'Министр'}},
-        {'id': 3, 'q': 'Графа "Тема" в КТМ?', 'a': 'C', 'options': {'A': 'Оценка', 'B': 'Погода', 'C': 'Название раздела', 'D': 'Дата'}},
-        {'id': 4, 'q': 'Зачем часы в КТМ?', 'a': 'B', 'options': {'A': 'Время', 'B': 'Распределение времени на темы', 'C': 'Красота', 'D': 'Перемена'}},
-        {'id': 5, 'q': 'КТМ на основе...', 'a': 'D', 'options': {'A': 'Газеты', 'B': 'Интернета', 'C': 'Желания', 'D': 'Учебной программы'}},
-        {'id': 6, 'q': 'Как часто обновлять КТМ?', 'a': 'B', 'options': {'A': 'Раз в месяц', 'B': 'Каждый учебный год', 'C': 'Раз в 5 лет', 'D': 'Никогда'}},
-        {'id': 7, 'q': 'Что такое компетенции?', 'a': 'A', 'options': {'A': 'Умения и навыки', 'B': 'Деньги', 'C': 'Книги', 'D': 'Штрафы'}},
-        {'id': 8, 'q': 'Что такое СРС?', 'a': 'C', 'options': {'A': 'Спорт', 'B': 'Связь', 'C': 'Самостоятельная работа студента', 'D': 'Совет'}},
-        {'id': 9, 'q': 'Контрольная работа?', 'a': 'B', 'options': {'A': 'Новая тема', 'B': 'Проверка знаний', 'C': 'Игры', 'D': 'Отдых'}},
-        {'id': 10, 'q': 'Модуль в программе?', 'a': 'A', 'options': {'A': 'Завершенная часть программы', 'B': 'Оценка', 'C': 'Деталь', 'D': 'Класс'}},
-        {'id': 11, 'q': 'Семестр — это...', 'a': 'D', 'options': {'A': 'Месяц', 'B': 'Неделя', 'C': 'Год', 'D': 'Половина учебного года'}},
-        {'id': 12, 'q': 'Критерии оценивания?', 'a': 'B', 'options': {'A': 'Цвет', 'B': 'Правила выставления оценок', 'C': 'Настроение', 'D': 'Погода'}},
-        {'id': 13, 'q': 'Домашнее задание в КТМ?', 'a': 'C', 'options': {'A': 'Запрещено', 'B': 'На ходу', 'C': 'Планируется заранее', 'D': 'Нет'}},
-        {'id': 14, 'q': 'Дистанционное обучение?', 'a': 'A', 'options': {'A': 'Через интернет', 'B': 'В лесу', 'C': 'Без книг', 'D': 'Только тесты'}},
-        {'id': 15, 'q': 'Что такое URL?', 'a': 'B', 'options': {'A': 'Вирус', 'B': 'Указатель ресурса', 'C': 'Сервер', 'D': 'Код'}},
-        {'id': 16, 'q': 'Что такое DNS?', 'a': 'D', 'options': {'A': 'Память', 'B': 'Провод', 'C': 'Сайт', 'D': 'Система имен'}},
-        {'id': 17, 'q': 'Что такое WWW?', 'a': 'A', 'options': {'A': 'Всемирная паутина', 'B': 'Почта', 'C': 'Код', 'D': 'Язык'}},
-        {'id': 18, 'q': 'Список литературы в КТМ?', 'a': 'C', 'options': {'A': 'Для веса', 'B': 'Красота', 'C': 'Доп. информация', 'D': 'Продажа'}},
-        {'id': 19, 'q': 'Наглядные пособия?', 'a': 'B', 'options': {'A': 'Еда', 'B': 'Карты, плакаты', 'C': 'Окна', 'D': 'Стены'}},
-        {'id': 20, 'q': 'Инновационные методы?', 'a': 'A', 'options': {'A': 'Новые технологии', 'B': 'Старые книги', 'C': 'Мел', 'D': 'Тишина'}},
-        {'id': 21, 'q': 'Лекция — это...', 'a': 'C', 'options': {'A': 'Экзамен', 'B': 'Обед', 'C': 'Изложение материала', 'D': 'Бег'}},
-        {'id': 22, 'q': 'Семинар — это...', 'a': 'A', 'options': {'A': 'Обсуждение темы', 'B': 'Сон', 'C': 'Тишина', 'D': 'Спорт'}},
-        {'id': 23, 'q': 'Заказчик КТМ?', 'a': 'B', 'options': {'A': 'Магазин', 'B': 'Учебный отдел', 'C': 'Столовая', 'D': 'Завод'}},
-        {'id': 24, 'q': 'Что такое интерактив?', 'a': 'D', 'options': {'A': 'Скука', 'B': 'Сон', 'C': 'Одиночество', 'D': 'Взаимодействие'}},
-        {'id': 25, 'q': 'Проверка завучем?', 'a': 'A', 'options': {'A': 'Контроль качества', 'B': 'Чтение', 'C': 'Смех', 'D': 'Подпись'}}
-    ],
-    'english': [],
-    'algorithms': []
-}
+# --- МОДЕЛИ ДАННЫХ ---
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(50), nullable=False)
 
+class Question(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    subject = db.Column(db.String(50), nullable=False)
+    q_text = db.Column(db.Text, nullable=False)
+    ans_correct = db.Column(db.String(1), nullable=False)
+    opt_a = db.Column(db.String(200))
+    opt_b = db.Column(db.String(200))
+    opt_c = db.Column(db.String(200))
+    opt_d = db.Column(db.String(200))
+
+# --- ПОЛНАЯ РУСИФИКАЦИЯ И ЗАЩИТА ---
+class MyAdminView(ModelView):
+    # Перевод кнопок и надписей
+    column_labels = {
+        'username': 'Имя пользователя',
+        'password': 'Пароль',
+        'subject': 'Предмет (java, architecture...)',
+        'q_text': 'Текст вопроса',
+        'ans_correct': 'Правильный ответ (A, B, C или D)',
+        'opt_a': 'Вариант A',
+        'opt_b': 'Вариант B',
+        'opt_c': 'Вариант C',
+        'opt_d': 'Вариант D'
+    }
+    
+    # Текст на кнопках
+    create_modal = True
+    edit_modal = True
+
+    def is_accessible(self):
+        return session.get('user') == "Maruf"
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('login'))
+
+# Главная страница админки тоже на русском
+class MyHomeView(AdminIndexView):
+    @expose('/')
+    def index(self):
+        if not session.get('user') == "Maruf":
+            return redirect(url_for('login'))
+        return self.render('admin/index.html')
+
+# --- ИНИЦИАЛИЗАЦИЯ ---
+with app.app_context():
+    db.create_all()
+    if not User.query.filter_by(username="Maruf").first():
+        admin_user = User(username="Maruf", password="985453887")
+        db.session.add(admin_user)
+        db.session.commit()
+
+# Создаем админку
+admin = Admin(app, name='Панель Маруфа', index_view=MyHomeView(name='Главная'))
+admin.add_view(MyAdminView(User, db.session, name="Пользователи"))
+admin.add_view(MyAdminView(Question, db.session, name="Вопросы тестов"))
+
+# --- МАРШРУТЫ ---
 @app.route('/')
 def index():
     if 'user' not in session: return redirect(url_for('login'))
@@ -130,29 +92,20 @@ def login():
     error = None
     if request.method == 'POST':
         u, p = request.form.get('username'), request.form.get('password')
-        if USERS.get(u) == p:
+        user = User.query.filter_by(username=u, password=p).first()
+        if user:
             session['user'] = u
             return redirect(url_for('index'))
         error = "Неверный логин или пароль!"
     return render_template('login.html', error=error)
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        USERS[request.form.get('username')] = request.form.get('password')
-        session['user'] = request.form.get('username')
-        return redirect(url_for('index'))
-    return render_template('register.html')
-
-@app.route('/logout')
-def logout():
-    session.pop('user', None)
-    return redirect(url_for('login'))
-
 @app.route('/quiz/<subject>', methods=['GET', 'POST'])
 def quiz(subject):
     if 'user' not in session: return redirect(url_for('login'))
-    questions = ALL_QUIZZES.get(subject, [])
+    db_questions = Question.query.filter_by(subject=subject).all()
+    questions = [{'id': q.id, 'q': q.q_text, 'a': q.ans_correct, 
+                  'options': {'A': q.opt_a, 'B': q.opt_b, 'C': q.opt_c, 'D': q.opt_d}} for q in db_questions]
+    
     results, score = None, 0
     if request.method == 'POST':
         results = {}
@@ -162,5 +115,10 @@ def quiz(subject):
             results[q['id']] = {'user_ans': user_ans, 'correct_ans': q['a']}
     return render_template('quiz.html', questions=questions, results=results, score=score, subject=subject)
 
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('login'))
+
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True)
