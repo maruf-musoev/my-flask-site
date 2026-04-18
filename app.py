@@ -8,14 +8,13 @@ import os
 app = Flask(__name__)
 app.secret_key = 'maruf_secret_key'
 
-# --- НАСТРОЙКА ЯЗЫКА ---
+# --- ЯЗЫК ---
 def get_locale():
     return 'ru'
-
 babel = Babel(app, locale_selector=get_locale)
 
-# --- НАСТРОЙКА БАЗЫ ДАННЫХ ---
-# Используем твое название переменной из Vercel
+# --- БАЗА ДАННЫХ ---
+# Проверяем оба варианта названия переменной из Vercel
 database_url = os.environ.get('ХРАНИЛИЩЕ_URL') or os.environ.get('POSTGRES_URL')
 
 if database_url:
@@ -52,9 +51,7 @@ class MyAdminView(ModelView):
         'opt_c': 'Вариант C', 'opt_d': 'Вариант D'
     }
     def is_accessible(self):
-        # Только ты (Maruf) можешь заходить в админку
         return session.get('user') == "Maruf"
-
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('login'))
 
@@ -68,8 +65,7 @@ admin = Admin(app, name='Панель Маруфа', index_view=MyHomeView(name=
 admin.add_view(MyAdminView(User, db.session, name="Пользователи"))
 admin.add_view(MyAdminView(Question, db.session, name="Вопросы тестов"))
 
-# --- МАРШРУТЫ САЙТА ---
-
+# --- МАРШРУТЫ ---
 @app.route('/')
 def index():
     if 'user' not in session: return redirect(url_for('login'))
@@ -83,7 +79,7 @@ def login():
         if user:
             session['user'] = u
             return redirect(url_for('index'))
-        flash("Неверный логин или пароль")
+        flash("Ошибка входа")
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -91,13 +87,11 @@ def register():
     if request.method == 'POST':
         u, p = request.form.get('username'), request.form.get('password')
         if not User.query.filter_by(username=u).first():
-            new_user = User(username=u, password=p)
-            db.session.add(new_user)
+            db.session.add(User(username=u, password=p))
             db.session.commit()
             session['user'] = u
             return redirect(url_for('index'))
-        else:
-            flash("Такой пользователь уже существует")
+        flash("Логин занят")
     return render_template('register.html')
 
 @app.route('/quiz/<subject>', methods=['GET', 'POST'])
@@ -120,12 +114,12 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('login'))
 
+# КРИТИЧЕСКИЙ БЛОК ДЛЯ СОЗДАНИЯ ТАБЛИЦ
+with app.app_context():
+    db.create_all()
+    if not User.query.filter_by(username="Maruf").first():
+        db.session.add(User(username="Maruf", password="985453887"))
+        db.session.commit()
+
 if __name__ == '__main__':
-    # Этот блок создаст таблицы в Neon автоматически
-    with app.app_context():
-        db.create_all() 
-        # Проверяем, есть ли твой админский аккаунт
-        if not User.query.filter_by(username="Maruf").first():
-            db.session.add(User(username="Maruf", password="985453887"))
-            db.session.commit()
     app.run(debug=True)
