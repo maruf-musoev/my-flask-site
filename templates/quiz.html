@@ -1,12 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Java Test</title>
     <style>
+        /* Твои оригинальные стили с улучшениями для мобильных */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 15px; 
+            background: #f4f7f6; 
+            margin: 0;
+            line-height: 1.5;
+        }
+        h1 { font-size: 22px; text-align: center; color: #333; }
+        
         .correct { color: green; font-weight: bold; }
         .wrong { color: red; text-decoration: line-through; }
-        .result-box { padding: 20px; border: 2px solid #000; margin-bottom: 20px; background: #f0f0f0; }
-        .question-block { margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        
+        .result-box { 
+            padding: 20px; 
+            border: 2px solid #28a745; 
+            margin-bottom: 20px; 
+            background: #e9f7ef; 
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .question-block { 
+            margin-bottom: 20px; 
+            border-bottom: 1px solid #ddd; 
+            padding-bottom: 15px; 
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Удобные отступы для выбора пальцем */
+        label {
+            display: block;
+            padding: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        input[type="radio"] {
+            transform: scale(1.3);
+            margin-right: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .nav-links a {
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            background: #007bff;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -35,20 +100,20 @@
                     {% endif %}">
                     {{ code }}) {{ text }}
                 </span>
-            </label><br>
+            </label>
         {% endfor %}
     </div>
     {% endfor %}
 
     {% if results is none %}
-        <button type="submit" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        <button type="submit">
             Проверить
         </button>
     {% else %}
-        <div style="margin-top: 20px;">
-            <a href="{{ url_for('quiz', subject=subject) }}" style="text-decoration: none; background: #007bff; color: white; padding: 10px 15px; border-radius: 5px;">Попробовать снова</a>
-            <br><br>
-            <a href="{{ url_for('index') }}" style="color: #666;">На главную</a>
+        <div class="nav-links">
+            <a href="{{ url_for('quiz', subject=subject) }}">Попробовать снова</a>
+            <br>
+            <a href="{{ url_for('index') }}" style="background: none; color: #666;">На главную</a>
         </div>
     {% endif %}
 </form>
