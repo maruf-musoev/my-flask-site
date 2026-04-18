@@ -8,21 +8,19 @@ import os
 app = Flask(__name__)
 app.secret_key = 'maruf_secret_key'
 
-# --- НАСТРОЙКА ЯЗЫКА (Babel 4.0) ---
+# --- НАСТРОЙКА ЯЗЫКА ---
 def get_locale():
     return 'ru'
 
 babel = Babel(app, locale_selector=get_locale)
 
-# --- НАСТРОЙКА БАЗЫ ДАННЫХ (Умное переключение) ---
-# Vercel создаст переменную ХРАНИЛИЩЕ_URL (POSTGRES_URL)
+# --- НАСТРОЙКА БАЗЫ ДАННЫХ ---
+# Используем твое название переменной из Vercel
 database_url = os.environ.get('ХРАНИЛИЩЕ_URL') or os.environ.get('POSTGRES_URL')
 
 if database_url:
-    # Используем облако Neon (чтобы работало с телефона)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url.replace('postgres://', 'postgresql://')
 else:
-    # Используем файл на компьютере
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test_system.db'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -48,13 +46,15 @@ class Question(db.Model):
 class MyAdminView(ModelView):
     column_labels = {
         'username': 'Имя пользователя', 'password': 'Пароль',
-        'subject': 'Предмет (Java, архитектура...)', 'q_text': 'Текст вопроса',
-        'ans_correct': 'Правильный ответ (A, B, C или D)',
+        'subject': 'Предмет', 'q_text': 'Текст вопроса',
+        'ans_correct': 'Верный ответ',
         'opt_a': 'Вариант A', 'opt_b': 'Вариант B',
         'opt_c': 'Вариант C', 'opt_d': 'Вариант D'
     }
     def is_accessible(self):
+        # Только ты (Maruf) можешь заходить в админку
         return session.get('user') == "Maruf"
+
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('login'))
 
@@ -64,17 +64,12 @@ class MyHomeView(AdminIndexView):
         if session.get('user') != "Maruf": return redirect(url_for('login'))
         return self.render('admin/index.html')
 
-with app.app_context():
-    db.create_all()
-    if not User.query.filter_by(username="Maruf").first():
-        db.session.add(User(username="Maruf", password="985453887"))
-        db.session.commit()
-
 admin = Admin(app, name='Панель Маруфа', index_view=MyHomeView(name='Главная'))
 admin.add_view(MyAdminView(User, db.session, name="Пользователи"))
 admin.add_view(MyAdminView(Question, db.session, name="Вопросы тестов"))
 
-# --- МАРШРУТЫ ---
+# --- МАРШРУТЫ САЙТА ---
+
 @app.route('/')
 def index():
     if 'user' not in session: return redirect(url_for('login'))
@@ -88,8 +83,22 @@ def login():
         if user:
             session['user'] = u
             return redirect(url_for('index'))
-        flash("Ошибка входа!")
+        flash("Неверный логин или пароль")
     return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        u, p = request.form.get('username'), request.form.get('password')
+        if not User.query.filter_by(username=u).first():
+            new_user = User(username=u, password=p)
+            db.session.add(new_user)
+            db.session.commit()
+            session['user'] = u
+            return redirect(url_for('index'))
+        else:
+            flash("Такой пользователь уже существует")
+    return render_template('register.html')
 
 @app.route('/quiz/<subject>', methods=['GET', 'POST'])
 def quiz(subject):
@@ -112,4 +121,10 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        # Авто-создание твоего админ-аккаунта
+        if not User.query.filter_by(username="Maruf").first():
+            db.session.add(User(username="Maruf", password="985453887"))
+            db.session.commit()
     app.run(debug=True)
