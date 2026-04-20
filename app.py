@@ -5,7 +5,8 @@ from flask_admin.contrib.sqla import ModelView
 from flask_babel import Babel
 import os
 
-app = Flask(__name__) # Исправил на __name__ для работы на сервере
+# ИСПРАВЛЕНО: Добавлены подчеркивания __name__
+app = Flask(__name__) 
 app.secret_key = 'maruf_secret_key'
 
 # --- ЯЗЫК ---
@@ -69,9 +70,9 @@ admin.add_view(MyAdminView(Question, db.session, name="Вопросы тесто
 def index():
     if 'user' not in session: return redirect(url_for('login'))
     
-    # АВТО-ПОИСК ПРЕДМЕТОВ: Берем все уникальные предметы из базы
+    # Автоматический поиск предметов
     unique_subjects = db.session.query(Question.subject.distinct()).all()
-    subjects = [s[0] for s in unique_subjects] # Превращаем в список имен
+    subjects = [s[0] for s in unique_subjects]
     
     return render_template('index.html', username=session['user'], subjects=subjects)
 
@@ -98,18 +99,23 @@ def register():
         flash("Логин занят")
     return render_template('register.html')
 
+# ИСПРАВЛЕНО: Добавлена функция quiz, которой не было в твоем сообщении!
 @app.route('/quiz/<subject>', methods=['GET', 'POST'])
 def quiz(subject):
     if 'user' not in session: return redirect(url_for('login'))
+    
     db_qs = Question.query.filter_by(subject=subject).all()
     questions = [{'id': q.id, 'q': q.q_text, 'a': q.ans_correct, 
                   'options': {'A': q.opt_a, 'B': q.opt_b, 'C': q.opt_c, 'D': q.opt_d}} for q in db_qs]
+    
     results, score = None, 0
-    if request.method == 'POST':results = {}    
-    for q in questions:
+    if request.method == 'POST':
+        results = {}
+        for q in questions:
             ans = request.form.get(str(q['id']))
             if ans == q['a']: score += 4
             results[q['id']] = {'user_ans': ans, 'correct_ans': q['a']}
+    
     return render_template('quiz.html', questions=questions, results=results, score=score, subject=subject)
 
 @app.route('/logout')
@@ -124,5 +130,6 @@ with app.app_context():
         db.session.add(User(username="Maruf", password="985453887"))
         db.session.commit()
 
-if __name__ == '__main__': # Исправил на __name__ == '__main__'
+# ИСПРАВЛЕНО: Добавлены подчеркивания __name__ == "__main__"
+if __name__ == '__main__':
     app.run(debug=True)
