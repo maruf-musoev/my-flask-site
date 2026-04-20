@@ -104,7 +104,8 @@ def register():
 def quiz(subject):
     if 'user' not in session: return redirect(url_for('login'))
     
-    db_qs = Question.query.filter_by(subject=subject).all()
+    search_subject = subject.strip() # убирает случайные пробелы
+    db_qs = db.session.query(Question).filter(Question.subject.ilike(search_subject)).all()
     questions = [{'id': q.id, 'q': q.q_text, 'a': q.ans_correct, 
                   'options': {'A': q.opt_a, 'B': q.opt_b, 'C': q.opt_c, 'D': q.opt_d}} for q in db_qs]
     
