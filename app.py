@@ -116,8 +116,11 @@ def quiz(subject):
             if ans == q['a']: score += 4
             results[q['id']] = {'user_ans': ans, 'correct_ans': q['a']}
     
-    return render_template('quiz.html', questions=questions, results=results, score=score, subject=subject)
-
+    # ... тут твой старый код (строки 103-117) ...
+    
+    from urllib.parse import unquote
+    clean_subject = unquote(subject)
+    return render_template('quiz.html', questions=questions, results=results, score=score, subject=clean_subject)
 @app.route('/logout')
 def logout():
     session.pop('user', None)
