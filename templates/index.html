@@ -92,41 +92,20 @@
     </div>
 
     <div class="grid">
-        <a href="{{ url_for('quiz', subject='english') }}" class="card">
-            <div class="icon">🇬🇧</div>
-            <h3>Английский язык</h3>
+        {% for sub in subjects %}
+        <a href="{{ url_for('quiz', subject=sub) }}" class="card">
+            <div class="icon">
+                {% if sub|lower == 'java' %}☕️
+                {% elif sub|lower == 'english' %}🇬🇧
+                {% elif sub|lower == 'architecture' or sub|lower == 'архитектура' %}🏛
+                {% elif sub|lower == 'philosophy' or sub|lower == 'философия' %}📜
+                {% elif sub|lower == 'ktm' or sub|lower == 'ктм' %}📅
+                {% else %}📝{% endif %}
+            </div>
+            <h3>{{ sub|upper }}</h3>
             <div class="btn-start">Перейти</div>
         </a>
-
-        <a href="{{ url_for('quiz', subject='architecture') }}" class="card">
-            <div class="icon">🏛</div>
-            <h3>Архитектура</h3>
-            <div class="btn-start">Перейти</div>
-        </a>
-
-        <a href="{{ url_for('quiz', subject='philosophy') }}" class="card">
-            <div class="icon">📜</div>
-            <h3>Философия</h3>
-            <div class="btn-start">Перейти</div>
-        </a>
-
-        <a href="{{ url_for('quiz', subject='java') }}" class="card">
-            <div class="icon">☕️</div>
-            <h3>Java Программирование</h3>
-            <div class="btn-start">Перейти</div>
-        </a>
-
-        <a href="{{ url_for('quiz', subject='algorithms') }}" class="card">
-            <div class="icon">💻</div>
-            <h3>Алгоритмы</h3>
-            <div class="btn-start">Перейти</div>
-        </a>
-
-        <a href="{{ url_for('quiz', subject='ktm') }}" class="card">
-            <div class="icon">📅</div>
-            <h3>КТМ</h3>
-            <div class="btn-start">Перейти</div>
-        </a>
+        {% endfor %}
     </div>
 
     <a href="{{ url_for('logout') }}" class="logout-link">Выйти из аккаунта</a>

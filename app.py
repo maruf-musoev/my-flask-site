@@ -5,7 +5,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_babel import Babel
 import os
 
-app = Flask(__name__)
+app = Flask(__name__) # Исправил на __name__ для работы на сервере
 app.secret_key = 'maruf_secret_key'
 
 # --- ЯЗЫК ---
@@ -14,7 +14,6 @@ def get_locale():
 babel = Babel(app, locale_selector=get_locale)
 
 # --- БАЗА ДАННЫХ ---
-# Проверяем оба варианта названия переменной из Vercel
 database_url = os.environ.get('ХРАНИЛИЩЕ_URL') or os.environ.get('POSTGRES_URL')
 
 if database_url:
@@ -69,7 +68,12 @@ admin.add_view(MyAdminView(Question, db.session, name="Вопросы тесто
 @app.route('/')
 def index():
     if 'user' not in session: return redirect(url_for('login'))
-    return render_template('index.html', username=session['user'])
+    
+    # АВТО-ПОИСК ПРЕДМЕТОВ: Берем все уникальные предметы из базы
+    unique_subjects = db.session.query(Question.subject.distinct()).all()
+    subjects = [s[0] for s in unique_subjects] # Превращаем в список имен
+    
+    return render_template('index.html', username=session['user'], subjects=subjects)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -101,9 +105,8 @@ def quiz(subject):
     questions = [{'id': q.id, 'q': q.q_text, 'a': q.ans_correct, 
                   'options': {'A': q.opt_a, 'B': q.opt_b, 'C': q.opt_c, 'D': q.opt_d}} for q in db_qs]
     results, score = None, 0
-    if request.method == 'POST':
-        results = {}
-        for q in questions:
+    if request.method == 'POST':results = {}    
+    for q in questions:
             ans = request.form.get(str(q['id']))
             if ans == q['a']: score += 4
             results[q['id']] = {'user_ans': ans, 'correct_ans': q['a']}
@@ -121,5 +124,5 @@ with app.app_context():
         db.session.add(User(username="Maruf", password="985453887"))
         db.session.commit()
 
-if __name__ == '__main__':
+if __name__ == '__main__': # Исправил на __name__ == '__main__'
     app.run(debug=True)
