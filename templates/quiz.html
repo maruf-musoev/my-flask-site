@@ -76,10 +76,42 @@
 </head>
 <body>
    <h1>Тест по {{ subject|capitalize }}</h1>
+
     {% if results is not none %}
         <div class="result-box">
             <h2>Ваш результат: {{ score }} из 100</h2>
         </div>
+    {% else %}
+        <div id="timer-box" style="font-size: 20px; font-weight: bold; color: white; position: fixed; top: 10px; right: 10px; background: #ff4d4d; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 1000;">
+            ⏳ <span id="timer">25:00</span>
+        </div>
+
+        <script>
+            let timeLeft = 1500; // 1500 секунд = 25 минут
+            const timerElement = document.getElementById('timer');
+
+            const countdown = setInterval(function() {
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+
+                minutes = minutes < 10 ? '0' + minutes : minutes;
+                seconds = seconds < 10 ? '0' + seconds : seconds;
+
+                timerElement.innerHTML = minutes + ":" + seconds;
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    alert("Время вышло! Результаты будут отправлены автоматически.");
+                    document.querySelector('form').submit(); 
+                }
+                
+                if (timeLeft <= 60) {
+                    document.getElementById('timer-box').style.background = 'black';
+                }
+
+                timeLeft -= 1;
+            }, 1000);
+        </script>
     {% endif %}
 
    <form method="POST" action="{{ url_for('quiz', subject=subject) }}">
@@ -92,8 +124,7 @@
                 <input type="radio" name="{{ q.id }}" value="{{ code }}" 
                     {% if results and results[q.id].user_ans == code %}checked{% endif %}
                     {% if results %}disabled{% endif %}>
-                
-                <span class="
+                    <span class="
                     {% if results %}
                         {% if code == results[q.id].correct_ans %}correct{% endif %}
                         {% if results[q.id].user_ans == code and code != results[q.id].correct_ans %}wrong{% endif %}
